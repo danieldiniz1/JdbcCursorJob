@@ -14,14 +14,17 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class JdbcCursorJobStepConfig {
 
     @Bean
-    public Step jdbcCursorJobStep(ItemReader<Cliente> jdbcPagingReader,
+    public Step jdbcCursorJobStep(ItemReader<Cliente> jdbcCursorReader,
                                   ItemWriter<Cliente> jdbcCursorWriter,
                                   JobRepository jobRepository,
                                   PlatformTransactionManager transactionManager){
         return new StepBuilder("jdbcCursorJobStep",jobRepository)
                 .<Cliente,Cliente> chunk(1)
-                .reader(jdbcPagingReader)
+                .reader(jdbcCursorReader)
                 .writer(jdbcCursorWriter)
+                .faultTolerant()
+                .skip(Exception.class)
+                .skipLimit(2)
                 .transactionManager(transactionManager)
                 .build();
     }
